@@ -1,7 +1,7 @@
-### sudo ansible-playbook plays/disable_dd_in_uat.yml --private-key ~/.ssh/ssh-key.pem -i disable_dd_in_uat_aws_ec2.yml
+### sudo ansible-playbook plays/disable_dd_in_uat.yml --private-key ~/.ssh/ssh-key.pem -i aws_ec2.yml
 
 - name: Disable and stop datadog-agent in UAT instances
-  hosts: all
+  hosts: _UAT
 
   tasks:    
     - name: Datadog is running when result is not Stopped

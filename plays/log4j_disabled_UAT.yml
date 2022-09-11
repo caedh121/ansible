@@ -1,7 +1,7 @@
-### sudo ansible-playbook plays/log4j_disabled_UAT.yml --private-key ~/.ssh/ssh-key.pem -i log4j_disabled_UAT
+### sudo ansible-playbook plays/log4j_disabled_UAT.yml --private-key ~/.ssh/ssh-key.pem -i aws_ec2.yml
 
 - name: Disable and stop log4j hotpatch in UAT instances
-  hosts: no-log4j
+  hosts: _UAT
 
   tasks:
     - name: disable log4j which is running when result is not Stopped

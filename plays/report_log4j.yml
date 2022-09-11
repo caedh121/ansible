@@ -1,4 +1,4 @@
-### sudo ansible-playbook plays/dd_report_log4j.yml --private-key ~/.ssh/ssh-key.pem -i dd_report_log4j_aws_ec2.yml > file.txt
+### sudo ansible-playbook plays/report_log4j.yml --private-key ~/.ssh/ssh-key.pem -i aws_ec2.yml > file.txt
 ### more file.txt | grep changed: 
  
 - name: List of linux instances with log4j hotpatch installed and enabled  
