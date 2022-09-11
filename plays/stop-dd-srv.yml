@@ -1,7 +1,7 @@
-### sudo ansible-playbook plays/3378.yml --private-key ~/.ssh/ssh-key.pem -i 3378
+### sudo ansible-playbook plays/stop-dd-srv.yml --private-key ~/.ssh/ssh-key.pem -i aws_ec2.yml
 
 - name: Ensure the dd-agent service is disabled and stopped
-  hosts: no-dd
+  hosts: _Development
 
   tasks:
      - service:
