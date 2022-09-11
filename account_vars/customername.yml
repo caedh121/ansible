@@ -1,0 +1,7 @@
+---
+# vars file for roles/aws-account
+# customer value must match file name part following the underscore ex: customername.yml => customer: "customername"
+region: "us-east-2"
+account_name: "CUSTOMERNAME"
+customer: "root.customername" 
+email: "root.customername@mycompanyname.global" 

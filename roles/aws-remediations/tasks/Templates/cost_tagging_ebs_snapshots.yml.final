@@ -1,0 +1,51 @@
+- name: Get list of  snapshots
+  ec2_snapshot_info:
+    region: "{{region}}"
+    owner_ids:
+       -  948854121134
+  register: snp_list
+
+- debug:
+#    msg: "{{ item  }} -- {{ item.volume_id }} -- {{item.tags}}"
+    msg: "{{ item.volume_id  }}"
+  with_items: "{{ snp_list.snapshots  }}"
+#  with_items: "{{ snp_list | json_query ('instances[*]') }}"
+
+
+- debug:
+    msg: ["{{instance_state | json_query ('results[*].instances[*].tags.Customer') | unique }}",
+          "{{instance_state | json_query ('results[*].instances[*].instance_id') | unique }}",
+          "{{instance_state | json_query ('results[*].instances[*].block_device_mappings[*].ebs.volume_id') | unique }}"]
+
+
+
+- name: Start stopped instances with attached volumes
+  ec2_instance:
+    region: "{{region1}}"
+    state: running
+    wait: yes
+    wait_timeout: 36000
+    instance_ids: "{{ item.instance_id }}"
+  with_items: "{{ instance_state | json_query ('results[*].instances[*]') | unique |default([]) }}"
+
+
+- name: Start instances that were running
+  ec2_instance:
+    region: "{{region}}"
+    state: running                          
+    wait: yes
+    wait_timeout: 36000
+    instance_ids: "{{ item }}"
+  with_items: "{{ instance_state | json_query ('results[*].instances[*].instance_id') | unique |default([]) }}"
+
+
+
+- name: Get list of instances 
+  ec2_instance_info:
+    region: "{{region1}}"
+  register: instance_info
+
+- debug:
+    msg: "{{instance_info.instances | length}}"
+
+

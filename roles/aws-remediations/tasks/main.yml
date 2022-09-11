@@ -1,0 +1,29 @@
+---
+# tasks file for roles/aws-remediations
+
+#- name: running Powershell scripts
+#  include_tasks:
+#        pwsh_tests.yml 
+
+
+#- name: Costs Tagging
+#  include_tasks:
+#        cost_tagging_ebs_snapshots.yml 
+
+#- name: Costs Tagging
+#  include_tasks:
+#        cost_tagging_ebs_volumes.yml 
+
+#- name: EC2-EBS Encryption Report
+#  include_tasks:
+#        ec2_ebs_encrypt_report.yml
+
+#- name: EBS Encrypt
+#  include_tasks:
+#        ebs_encrypt.yml
+
+#- name: Snapshots Cleanup
+#  include_tasks:
+#        snapshots_cleanup.yml      
+
+

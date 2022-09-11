@@ -1,0 +1,23 @@
+- name: Describe EBS volumes using ansible module
+  ec2_vol_info:
+     region: "{{region}}"
+     filters:
+       encrypted: false
+  register: ebs_info
+
+- name: Create Encrypted Copy of every unencrypted snapshot
+  ec2_snapshot_info:
+    region: "{{region}}"   
+    filters:
+      encrypted: false
+      owner-id: 948854121134
+  register: snap_ori
+
+- ec2_snapshot_copy:
+    source_region: "{{region}}"
+    region: "{{region}}"
+    source_snapshot_id: "{{item.snapshot_id}}"
+    encrypted: yes
+    tags:
+     "{{ item.tags }}" 
+  with_items: "{{ snap_ori.snapshots }}"

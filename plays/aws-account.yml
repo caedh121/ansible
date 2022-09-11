@@ -1,0 +1,8 @@
+---
+- name: Create AWS Sub-Account  
+  hosts: localhost
+
+  roles:
+   - role: internal/aws-account
+
+

@@ -1,0 +1,33 @@
+- name: Describe EC2 resources
+  ec2_instance_info:
+     region: "{{region}}"
+  register: ec2_info
+
+
+- debug:
+    msg: 
+          [
+         "CUSTOMER: {{ec2_info | json_query ('instances[*].tags.Customer') }}",
+         "ENVIRONMENT: {{ec2_info | json_query ('instances[*].tags.Environment') }}",
+         "VOLUMES: {{ec2_info | json_query ('instances[*].block_device_mappings[*].ebs.volume_id') | length }}"
+           ]
+#- debug:
+#    msg: "{{region}} {{ec2_info | json_query ('results[*].instances[*].tags.Name') | length }} instances "
+#- debug:
+#    msg: "{{faulty_ec2s | json_query ('results[*].instances[*].tags.Name')}}"
+
+- debug:
+    msg:  "{{item | json_query ('block_device_mappings[*].ebs.volume_id')}}"
+  with_items: "{{ ec2_info.instances }}"
+
+- name: Tag EBS Volumes after EC2 instance Tags Customer and Environment
+  ec2_tag:
+     region: "{{region}}"
+     purge_tags: no
+     state: present
+     resource: "{{item | json_query  ('block_device_mappings[].ebs.volume_id') }}"
+     tags:
+       Customer: "{{ item | json_query ('tags.Customer') }}"
+       Environment: "{{ item | json_query ('tags.Environment') }}"
+       Name: "{{ item | json_query ('tags.Name') }}"
+  with_items: "{{ ec2_info.instances }}"

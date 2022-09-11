@@ -1,0 +1,56 @@
+- name: Describe EBS volumes using ansible module
+  ec2_vol_info:
+     region: "{{region}}"
+     filters:
+       encrypted: false
+  register: ebs_info
+
+- name: Tag the unencrypted volumes after their instance_id and device name
+  ec2_tag:
+    region: "{{region}}"
+    purge_tags: no
+    resource: "{{item.id}}"
+    state: present
+    tags:
+      InstanceId: "{{ item.attachment_set.0.instance_id }}"
+      Device: "{{ item.attachment_set.0.device }}"
+      SnapshotId: "{{ item.snapshot_id }}"
+      Zone: "{{ item.zone }}"
+      Encrypted: "{{ item.encrypted }}"
+  with_items: "{{ ebs_info.volumes }}"
+  register: vol_tags
+
+- name: Create Snapshot of every unencrypted volume
+  ec2_snapshot:
+    region: "{{region}}"
+    volume_id: "{{item.id}}"
+    state: present
+    wait: yes
+    last_snapshot_min_age: 480
+    snapshot_tags:
+      InstanceId: "{{ item.attachment_set.0.instance_id }}"
+      Device: "{{ item.attachment_set.0.device }}"
+      Zone: "{{ item.zone }}"
+      Encrypted: "{{ item.encrypted }}"
+  with_items: "{{ ebs_info.volumes }}"
+
+- name: Create Encrypted Copy of every unencrypted snapshot
+  ec2_snapshot_info:
+    region: "{{region}}"   
+    filters:
+      encrypted: false
+      owner-id: 948854121134
+  register: snap_ori
+
+- debug:
+    msg: "{{snap_ori.snapshots.volume_size}}"
+
+#- debug:
+#    msg: "{{ebs_info.volumes.0.attachment_set.0.instance_id}}"
+
+
+#- debug:
+#    msg: "{{ item.attachment_set.0.device }} -- {{ item.id }}  --  {{ item.attachment_set.0.instance_id }} "
+#  with_items: "{{ ebs_info.volumes }}"
+
+

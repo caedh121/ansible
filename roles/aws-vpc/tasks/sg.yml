@@ -1,0 +1,53 @@
+- name: Create Genesis Default Security Group
+  ec2_group:
+    name: "{{customer}}_default_sg"
+    description: Genesis default ports
+    vpc_id: "{{ thisvpc.vpc.id }}"
+    region: "{{ region }}"
+    state: present
+    purge_rules: yes
+    purge_rules_egress: yes
+    purge_tags: yes
+    tags:
+      Customer: "{{customer }}"
+      Createdby: "{{createdby }}" 
+    rules:
+      - proto: tcp
+        ports:
+        - 443
+        cidr_ip: 172.20.0.0/16
+        rule_desc: https from london ras
+      - proto: tcp
+        ports:
+        - 22
+        cidr_ip: 172.20.0.0/16
+        rule_desc: ssh from london ras
+      - proto: tcp
+        ports:
+        - 22
+        cidr_ip: 172.21.1.0/24
+        rule_desc: ssh from sao paolo ras
+      - proto: tcp
+        ports:
+        - 9100
+        - 9101
+        cidr_ip: 172.20.0.0/16
+        rule_desc: prometheus scrape
+      - proto: tcp
+        ports:
+        - 4567
+        cidr_ip: 172.20.0.0/16
+        rule_desc: Webmon from london ras
+      - proto: icmp
+        ports:
+        - -1
+        cidr_ip: 172.20.0.0/16
+        rule_desc: ping from london ras
+    rules_egress:
+      - proto: all
+        ports:
+        - -1
+        cidr_ip: 0.0.0.0/0
+        rule_desc: allow all outbound
+  register: thissg
+

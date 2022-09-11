@@ -1,0 +1,40 @@
+- name: Get the status of the request
+  command:
+     aws organizations list-create-account-status
+  register: this_request
+
+- name: Store the info
+  set_fact:
+    txt: "{{this_request.stdout |from_json| json_query (' CreateAccountStatuses ')}}"
+
+- set_fact:
+    this_acc_id: "{{txt.0.AccountId}}"
+
+- name: Attach Customer tagging policy
+  shell: >
+       aws organizations list-policies-for-target --target-id "{{this_acc_id}}" --filter TAG_POLICY  | grep -q p-95c1tt3wf4 && echo 'Attached' || aws organizations attach-policy --policy-id p-95c1tt3wf4 --target-id "{{this_acc_id}}"
+  register: tpcustomer_cli
+  changed_when: tpcustomer_cli.stdout != 'Attached'
+
+- debug:
+    msg: "{{tpcustomer_cli.stdout}}"
+
+- name: Attach Environment tagging policy
+  shell: >
+       aws organizations list-policies-for-target --target-id "{{this_acc_id}}" --filter TAG_POLICY  | grep -q p-95bky87zjl && echo 'Attached' || aws organizations attach-policy --policy-id p-95bky87zjl --target-id "{{this_acc_id}}"
+  register: tpenv_cli
+  changed_when: tpenv_cli.stdout != 'Attached'
+
+- debug:
+    msg: "{{tpenv_cli.stdout}}"
+
+- name: Attach Service Control Policy for KMS Key Protection
+  shell: >
+       aws organizations list-policies-for-target --target-id "{{this_acc_id}}" --filter SERVICE_CONTROL_POLICY  | grep -q p-xfvm4db4 && echo 'Attached' || aws organizations attach-policy --policy-id p-xfvm4db4 --target-id "{{this_acc_id}}"
+  register: scpkms_cli
+  changed_when: scpkms_cli.stdout != 'Attached'
+
+- debug:
+    msg: "{{scpkms_cli.stdout}}"
+
+

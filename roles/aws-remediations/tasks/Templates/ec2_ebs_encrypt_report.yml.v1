@@ -1,0 +1,31 @@
+- name: Describe EBS volumes using ansible module
+  ec2_vol_info:
+     region: "{{region}}"
+     filters:
+       encrypted: false
+       attachment.status: attached
+  register: ebs_info
+
+#- debug:
+#    msg: "{{ebs_info | json_query ('volumes[*]')}}"
+#- debug:
+#    msg: "{{ebs_info | json_query ('volumes[*].attachment_set[*].instance_id') | unique}}"
+      
+#- set_fact:
+#    faulty_instances: "{{ebs_info | json_query ('volumes[*].attachment_set[*].instance_id') | unique | list}}"
+#- debug:
+#    msg: "{{faulty_instances}}"
+
+- ec2_instance_info:
+     region: "{{region}}"
+     instance_ids: "{{item}}"
+  with_items: "{{ebs_info | json_query ('volumes[*].attachment_set[*].instance_id') | unique}}"
+  register: faulty_ec2s
+
+- debug:
+    msg: "{{region}} {{faulty_ec2s | json_query ('results[*].instances[*].tags.Name') | length }} instances "
+- debug:
+    msg: "{{faulty_ec2s | json_query ('results[*].instances[*].tags.Name')}}"
+- debug:
+    msg: "{{faulty_ec2s | json_query ('results[*].instances[*].tags.Name') | length }}"
+

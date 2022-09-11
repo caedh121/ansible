@@ -1,0 +1,10 @@
+region: "eu-west-2"
+base_ami: "ami-0a555ad7d86ffd6b1"
+spot_instance_types: ["t3.large"]
+spot_price: 10      
+subnet_id: "subnet-014d75033eeb9d659"
+security_group_id: "sg-07b8b1ca29af62250"
+ssh_username: "centos"
+ssh_private_key_file: "provision_key.pem"
+### Tags
+Deployable: "True"

@@ -1,0 +1,10 @@
+- name: Describe EBS volumes using ansible module
+  ec2_vol_info:
+     region: "{{region}}"
+     filters:
+       attachment.status: attached
+  register: ebs_info
+
+- debug:
+    msg: "{{item.id}}"
+  with_items: "{{ebs_info.volumes}}

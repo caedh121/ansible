@@ -1,0 +1,45 @@
+- name: Gather info about public Subnets
+  ec2_vpc_subnet_info:
+    region: "{{ region }}" 
+    filters:
+      vpc-id: "{{ thisvpc.vpc.id }}"
+      "tag:IsPublic": "*True*"
+  register: public_subnets
+
+- name: Store public subnet ID's
+  set_fact:
+    public_subnet_ids: "{{ public_subnets | json_query ('subnets[*].subnet_id') }}"
+
+- name: Create Internet Gateway
+  ec2_vpc_igw:
+   vpc_id: "{{ thisvpc.vpc.id }}"
+   region: "{{ region }}"
+   state: present
+   tags:
+     Name: "Inetgw_{{thisvpc.vpc.tags.Name}}"
+     VPCname: "{{ thisvpc.vpc.tags.Name }}"
+     Customer: "{{customer }}"
+     Createdby: "{{createdby }}"
+  register: thisigw
+
+- name: Route IGW
+  ec2_vpc_route_table:
+    vpc_id: "{{ thisvpc.vpc.id }}"
+    region: "{{ region }}"
+    state: present
+    purge_routes: no
+    purge_subnets: no
+    purge_tags: no
+    subnets: 
+       '{{ item }}'
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ thisigw.gateway_id }}"
+    tags:
+      Name: "inet_route_{{ thisvpc.vpc.id }}"
+      GTWname: "{{ thisigw.tags.Name }}"
+      Customer: "{{ customer }}"
+      Createdby: "{{ createdby }}"
+  with_items:
+      "{{ public_subnet_ids }}"
+  register: public_route_table

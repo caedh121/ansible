@@ -1,0 +1,25 @@
+plugin: aws_ec2
+
+# Ignores 403 errors rather than failing
+strict_permissions: False
+
+#If empty (the default) default this will include all regions
+regions:
+#  - "us-east-1"
+#  - "sa-east-1"
+#  - "eu-west-1"
+#  - "eu-west-2"
+
+keyed_groups:
+#   - key: placement.region
+#     prefix: aws_region
+#   - key: tags.Customer
+   - key: tags.Environment
+
+filters:
+#   tag:Environment: Production
+   instance-state-name : running
+hostnames:
+  - tag:Name
+compose:
+  ansible_host: private_ip_address

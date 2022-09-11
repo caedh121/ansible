@@ -1,0 +1,10 @@
+- name: Check if datadog is installed
+  shell: >
+       systemctl status datadog-agent  | grep -q Loaded  && echo 'Present' || echo 'Absent' 
+  register: dd_cli
+  changed_when: dd_cli.stdout != 'Absent'
+
+- debug:
+    msg: "{{dd_cli.stdout | length}}"
+
+

@@ -1,0 +1,6 @@
+- name: Return a failure back to Ansible
+  ansible.windows.win_powershell:
+    script: |
+      if (Test-Path C:\bad.file) {
+          $Ansible.Failed = $true
+      }

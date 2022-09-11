@@ -1,0 +1,148 @@
+- name: Describe EBS volumes using ansible module
+  ec2_vol_info:
+     region: "{{region}}"
+     filters:
+       encrypted: false
+       attachment.status: attached
+  register: ebs_info
+
+- name: Tag the unencrypted volumes after their instance_id and device name
+  ec2_tag:
+    region: "{{region}}"
+    purge_tags: no
+    resource: "{{item.id}}"
+    state: present
+    tags:
+      InstanceId: "{{ item.attachment_set.0.instance_id }}"
+      Device: "{{ item.attachment_set.0.device }}"
+      SnapshotId: "{{ item.snapshot_id }}"
+      Zone: "{{ item.zone }}"
+      Encrypted: "{{ item.encrypted }}"
+  with_items: "{{ ebs_info.volumes }}"
+  register: vol_tags
+
+- name: Get list of running instances with attached unencrypted volumes
+  ec2_instance_info:
+    region: "{{region}}"
+    filters:
+      instance-state-name: running
+  with_items: "{{ ebs_info.volumes }}"
+  register: instance_state
+
+- name: Stop running instances with attached unencrypted volumes 
+  ec2_instance:
+    region: "{{region}}"
+    state: stopped
+    wait: yes
+    wait_timeout: 36000
+    instance_ids: "{{ item.instances.0.instance_id }}"
+  with_items: "{{ instance_state.results }}"
+  ignore_errors: yes
+  when: item.instances.0.instance_id is defined
+
+- name: Get list of any previous Remediation snapshots
+  ec2_snapshot_info:
+    region: "{{region}}"
+    filters:
+      owner-id: 948854121134
+      "tag:ForRemediation": "*True*"
+  register: snap_cleanup
+
+- name: Delete any previuos Remediation snapshots
+  ec2_snapshot:
+    region: "{{region}}"
+    state: absent
+    snapshot_id: "{{item.snapshot_id}}"
+    wait: 0
+  with_items: "{{ snap_cleanup.snapshots }}"
+
+- name: Create Snapshot of every unencrypted volume
+  ec2_snapshot:
+    region: "{{region}}"
+    volume_id: "{{item.id}}"
+    state: present
+    wait: yes
+    last_snapshot_min_age: 0
+    snapshot_tags:
+      FromUnencryptedVolume: "{{ item.id }}"
+      InstanceId: "{{ item.attachment_set.0.instance_id }}"
+      Device: "{{ item.attachment_set.0.device }}"
+      DeleteOnTermination: "{{ item.attachment_set.0.delete_on_termination}}"
+      Zone: "{{ item.zone }}"
+      Size: "{{ item.size }}"
+      Type: "{{ item.type }}"
+      IOPs: "{{ item.iops }}"
+      ForRemediation: True
+  with_items: "{{ ebs_info.volumes }}"
+
+- name: Get info of every unencrypted snapshot that is part of the Remediation
+  ec2_snapshot_info:
+    region: "{{region}}"
+    filters:
+      encrypted: false
+      owner-id: 948854121134
+      "tag:ForRemediation": "*True*"
+  register: snap_ori
+
+- name: Create an encrypted snapshot copy
+  ec2_snapshot_copy:
+    source_region: "{{region}}"
+    region: "{{region}}"
+    source_snapshot_id: "{{item.snapshot_id}}"
+    encrypted: yes
+    wait: yes
+    wait_timeout: 36000
+    tags:
+     "{{ item.tags }}"
+  with_items: "{{ snap_ori.snapshots }}"
+
+- name: Get info of every encrypted snapshot that is part of the Remediation
+  ec2_snapshot_info:
+    region: "{{region}}"
+    filters:
+      encrypted: true
+      owner-id: 948854121134
+      "tag:ForRemediation": "*True*"
+  register: snap_enc
+
+- name: Dettach unencrypted volumes
+  ec2_vol:
+    region: "{{region}}"
+    zone: "{{ item.tags.Zone }}"
+    state: present
+    id: "{{item.tags.FromUnencryptedVolume}}"
+    instance: None   
+  with_items: "{{ snap_enc.snapshots }}"
+
+- name: Create and attach encrypted volume
+  ec2_vol:
+    region: "{{region}}"
+    zone: "{{ item.tags.Zone }}"
+    state: present
+    device_name: "{{ item.tags.Device }}"
+    instance: "{{ item.tags.InstanceId }}"
+    snapshot: "{{item.snapshot_id}}"
+    volume_type: "{{ item.tags.Type }}"
+    volume_size: "{{ item.tags.Size }}"
+    iops: "{{ item.tags.IOPS | default (omit) }}" 
+    delete_on_termination: "{{ item.tags.DeleteOnTermination }}"
+    encrypted: yes
+    tags:
+     "{{ item.tags }}"
+  with_items: "{{ snap_enc.snapshots }}"
+
+- name: Start instances that were running
+  ec2_instance:
+    region: "{{region}}"
+    state: "{{item.instances.0.state.name}}"
+    wait: yes
+    wait_timeout: 36000
+    instance_ids: "{{ item.instances.0.instance_id }}"
+  with_items: "{{ instance_state.results }}"
+  ignore_errors: yes
+  when: item.instances.0.instance_id is defined
+
+- name: Enable EBS encryption by default
+  command:
+    aws ec2 enable-ebs-encryption-by-default --region "{{region}}"
+

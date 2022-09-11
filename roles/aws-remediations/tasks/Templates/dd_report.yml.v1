@@ -1,0 +1,27 @@
+- name: Check if datadog is installed
+  shell: >
+       systemctl status dtatadog-agent  | grep -q 'could not be found' && echo 'Absent' || hostanme 
+  register: dd_cli
+  changed_when: dd_cli.stdout != 'Absent'
+
+- debug:
+    msg: "{{dd_cli.stdout}}"
+
+- name: Store the info
+  set_fact:
+    txt: "{{this_request.stdout |from_json| json_query (' CreateAccountStatuses ')}}"
+
+- set_fact:
+    this_acc_id: "{{txt.0.AccountId}}"
+
+
+- name: Attach Environment tagging policy
+  shell: >
+       aws organizations list-policies-for-target --target-id "{{this_acc_id}}" --filter TAG_POLICY  | grep -q p-95bky87zjl && echo 'Attached' || aws organizations attach-policy --policy-id p-95bky87zjl --target-id "{{this_acc_id}}"
+  register: tpenv_cli
+  changed_when: tpenv_cli.stdout != 'Attached'
+
+- debug:
+    msg: "{{tpenv_cli.stdout}}"
+
+

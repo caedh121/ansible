@@ -1,0 +1,44 @@
+- name: Describe EBS volumes using ansible module
+  ec2_vol_info:
+     region: "{{region}}"
+     filters:
+       attachment.status: attached
+  register: ebs_info
+
+- debug:
+    msg: "{{item.attachment_set | json_query ('[*].instance_id') | to_json }}"
+  with_items: "{{ebs_info.volumes}}"
+
+- name: Decribe ec2-instances with AWS CLI
+  command:
+     aws ec2 describe-instances --region "{{region}}" --instance-ids '{{item.attachment_set | json_query ('[*].instance_id') |  to_json }}' --query 'Reservations[*].Instances[*].Tags[?Key==`Customer`]' --output json
+  with_items: "{{ebs_info.volumes}}"
+  register: ec2_info
+
+- debug:
+    msg: "{{ec2_info.results}}"
+
+- name: Store volumes and instances tags in a dictionary list
+  set_fact:
+    thisv_id: "{{item.id}}"
+       thisv_instance_id: "{{item.attachment_set | json_query ('[*].instance_id') | to_json }}"
+       thisv_name: 
+       thisv_customer: 
+       thisv_environment: 
+  with_items: "{{ebs_info.volumes}}"
+  
+
+- name: Tag the volumes 
+  ec2_tag:
+    region: "{{region}}"
+    purge_tags: no
+    resource: "{{item.id}}"
+    state: present
+    tags:
+      Customer: 
+         command:
+           aws ec2 describe-instances --region "{{region}}" --instance-ids '{{item.attachment_set | json_query ('[*].instance_id') |  to_json }}' --query 'Reservations[*].Instances[*].Tags[?Key==`Customer`]' --output json
+  with_items: "{{ ebs_info.volumes }}"
+
+
+

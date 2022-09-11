@@ -1,0 +1,36 @@
+---
+# tasks file for roles/aws-ami
+###
+###
+- name: Create a temp ec2 instance
+  ec2_instance:
+    region: "{{region}}"
+    name: "adrian-packer-test"
+    image_id: "{{base_ami}}"
+    instance_type: "{{spot_instance_type}}"
+    vpc_subnet_id: "{{subnet_id}}"
+    security_group: "{{security_group_id}}"
+    key_name: "{{ssh_private_key_file}}"
+    tags:
+      Deployable: "{{Deployable}}"
+  register: this_instance
+
+- name: Store instance info
+  set_fact: 
+    this_instance_info: "{{this_instance.instances.0}}"
+
+- debug:
+    msg: "{{this_instance_info}}"
+
+- name: AMI creation
+  ec2_ami:
+    region: "{{region}}"
+    instance_id: "{{this_instance_info.instance_id}}"
+    name: "{{this_instance_info.tags.Name}}-image1"
+    no_reboot: no
+    purge_tags: no
+    tags:
+       Role: "{{this_instance_info.iam_instance_profile.arn}}"
+       Instancetype: "{{this_instance_info.instance_type}}"
+    wait: yes
+

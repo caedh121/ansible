@@ -1,0 +1,12 @@
+- name: Create a vgw attached to this VPC
+  ec2_vpc_vgw:
+    state: present
+    region: "{{ region }}"
+    vpc_id: "{{ thisvpc.vpc.id }}"
+    name: "vpn_gwy_{{ thisvpc.vpc.id }}"
+    type: ipsec.1
+    tags:
+      Customer: "{{customer }}"
+      Createdby: "{{createdby }}"
+  register: thisvgw
+

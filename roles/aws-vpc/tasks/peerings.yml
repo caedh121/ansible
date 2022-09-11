@@ -1,0 +1,43 @@
+- name: "Create peering connections"
+  ec2_vpc_peer:
+    region: "{{ region }}"
+    vpc_id: "{{ thisvpc.vpc.id }}"
+    peer_owner_id: "{{ call_peering.p_accid }}"
+    peer_region: "{{ call_peering.p_region }}"
+    peer_vpc_id: "{{ call_peering.p_vpcid }}"
+    state: "present"
+    tags: "{{ call_peering.p_tags }}"
+  with_items: "{{peerings}}"
+  loop_control:
+     loop_var: call_peering
+
+- name: Describe peerings using ansible module
+  ec2_vpc_peering_info:
+    region: "{{ region }}"
+    filters:
+      requester-vpc-info.vpc-id: "{{ thisvpc.vpc.id }}"
+      status-code: ['active']
+  register: peerings_info
+
+- name: Describe route tables using AWS CLI, because ansible module crashes!!
+  command:
+    aws ec2 describe-route-tables --region "{{ region }}" --filters Name=vpc-id,Values="{{ thisvpc.vpc.id }}"
+  register: rtbs_cli
+
+- name: Update routing tables
+  ec2_vpc_route_table:
+    state: present
+    region: "{{ region }}"
+    vpc_id: "{{ thisvpc.vpc.id }}"
+    route_table_id: "{{ item.0 }}"
+    lookup: id
+    purge_routes: no
+    purge_subnets: no
+    purge_tags: no
+    routes:
+      - dest: "{{ item.1.accepter_vpc_info.cidr_block }}"
+        vpc_peering_connection_id: "{{ item.1.vpc_peering_connection_id }}"
+  with_nested:
+     - "{{ rtbs_cli.stdout | from_json | json_query( 'RouteTables[*].RouteTableId' ) }}"
+     - "{{ peerings_info.result }}"
+  

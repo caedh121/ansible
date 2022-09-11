@@ -1,0 +1,10 @@
+### sudo ansible-playbook plays/3378.yml --private-key ~/.ssh/ssh-key.pem -i 3378
+
+- name: Ensure the dd-agent service is disabled and stopped
+  hosts: no-dd
+
+  tasks:
+     - service:
+         name: datadog-agent
+         state: stopped
+         enabled: no

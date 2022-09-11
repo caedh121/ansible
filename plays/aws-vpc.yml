@@ -1,0 +1,8 @@
+---
+- name: Create AWS VPC 
+  hosts: localhost
+
+  roles:
+   - role: internal/aws-vpc
+
+

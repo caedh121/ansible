@@ -1,0 +1,51 @@
+- name: Get info of every encrypted snapshot that is part of the Remediation
+  ec2_snapshot_info:
+    region: "{{region}}"
+    filters:
+      encrypted: true
+      owner-id: 948854121134
+      "tag:ForRemediation": "*True*"
+  register: snap_enc
+
+- name: Dettach uncrypted volumes
+  ec2_vol:   
+    region: "{{region}}"
+    zone: "{{ item.tags.Zone }}"
+    state: present
+    id: "{{item.id}}" 
+    instance: None 
+  with_items: "{{ ebs_info.volumes }}"
+
+- name: Create an encrypted volume
+  ec2_vol:   
+    region: "{{region}}"
+    zone: "{{ item.tags.Zone }}"
+    state: present
+    instance: "{{ item.tags.InstanceId }}" 
+    snapshot: "{{item.snapshot_id}}"
+    volume_type: "{{ item.tags.Type }}"
+    volume_size: "{{ item.tags.Size }}"
+    iops: {{ item.tags.IOPS }} IF PRESENT
+    delete_on_termination: "{{ item.tags.DeleteOnTermination }}"
+    encrypted: yes
+    tags:
+     "{{ item.tags }}"
+  with_items: "{{ snap_enc.snapshots }}"
+
+- debug:
+    msg: "{{ snap_enc.snapshots }}"
+
+#- debug:
+ #   msg: "{{ebs_ansible.volumes}}"
+
+- debug:
+    msg: "{{ item.tags.ForRemediation }} -- {{ item.tags.InstanceId }} -- {{ item.tags.Device }} -- {{ item.snapshot_id }}"
+  with_items: "{{ snap_enc.snapshots }}"
+     
+       
+#- debug:
+ #   msg: "{{ebs_ansible | json_query('volumes[].attachment_set[].instance_id') }}"
+
+
+
+

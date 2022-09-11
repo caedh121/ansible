@@ -1,0 +1,17 @@
+- name: Create Subnets
+  ec2_vpc_subnet:
+    state: present
+    region: "{{ region }}"
+    vpc_id: "{{ thisvpc.vpc.id }}"
+    cidr: "{{ item.subnet_cidr }}"
+    az: "{{ item.subnet_az }}"
+    map_public: "{{ item.ispublic | default ('False') }}"
+    resource_tags:
+      Name: "{{customer}}_{{ item.subnet_az }}_subnet"
+      Customer: "{{customer}}"
+      Environment: "{{item.env}}"
+      VPCname: "{{ thisvpc.vpc.tags.Name }}"
+      Createdby: "{{createdby}}"
+      IsPublic: "{{ item.ispublic | default ('False') }}"
+  with_items: "{{subnet}}"
+  register: subnets_output

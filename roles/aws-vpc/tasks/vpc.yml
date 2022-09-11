@@ -1,0 +1,19 @@
+---
+# tasks file for roles/aws-vpc
+
+- name: create VPC
+  ec2_vpc_net:
+    name: "{{customer}}_vpc"
+    region: "{{ region }}"
+    cidr_block: "{{ vpc_cidr }}"
+    state: present
+    dns_support: "{{ enable_dns_support | default ('True') }}"
+    dns_hostnames: "{{ enable_dns_hostnames | default ('True') }}"
+    tenancy: "{{ vpc_tenancy | default (omit) }}"
+    multi_ok: "no"
+    tags:
+     Customer: "{{customer}}"
+     Createdby: "{{createdby}}"
+  register: thisvpc
+  when: (vpc_cidr is defined) and (region is defined) and (customer is defined)
+

@@ -1,0 +1,174 @@
+#####   UAT NAT RESOURCES  #######
+- name: Gather info about public UAT  Subnets
+  ec2_vpc_subnet_info:
+    region: "{{ region }}"
+    filters:
+      vpc-id: "{{ thisvpc.vpc.id }}"
+      "tag:IsPublic": "*True*"
+      "tag:Environment": "*UAT*"
+  register: public_UAT_subnets
+
+- name: Store public UAT subnet ID's
+  set_fact:
+    public_UAT_subnet_ids: "{{ public_UAT_subnets | json_query ('subnets[*].subnet_id') }}"
+
+- name: Gather info about private UAT Subnets 
+  ec2_vpc_subnet_info:
+    region: "{{ region }}"
+    filters:
+      vpc-id: "{{ thisvpc.vpc.id }}"
+      "tag:IsPublic": "*False*"
+      "tag:Environment": "*UAT*"
+  register: private_UAT_subnets
+
+- name: Store private UAT subnet ID's
+  set_fact:
+    private_UAT_subnet_ids: "{{ private_UAT_subnets | json_query ('subnets[*].subnet_id') }}"
+
+- name: Create UAT NAT Gateway
+  ec2_vpc_nat_gateway:
+    state: present
+    region: "{{ region }}"
+    subnet_id: "{{ item }}"
+    eip_address: "{{ eip | default (omit) }}"
+    if_exist_do_not_create: true
+    wait: "{{ natgw_wait | default ('yes') }} "
+    wait_timeout: "{{ natgw_wait_timeout | default (omit) }}"
+  with_items: "{{ public_UAT_subnet_ids[0] }}"
+  register: thisUATnatgw
+
+- name: Store UAT NAT GATEWAY ID
+  set_fact:
+    UAT_natgw_id: "{{ thisUATnatgw.results|json_query('[0].nat_gateway_id') }}"
+
+- name: Store UAT NAT GATEWAY creation time
+  set_fact:
+    UAT_natgw_create_time: "{{ thisUATnatgw.results|json_query('[0].create_time') }}"
+
+- name: Tag the UAT NAT Gateway(s)
+  ec2_tag:
+    region:  "{{ region }}"
+    resource: "{{ item }}"
+    tags:
+      Name: "UAT_natgw_{{ thisvpc.vpc.id  }}"
+      Customer: "{{customer }}"
+      Createdby: "{{createdby }}"
+      Date: "{{ UAT_natgw_create_time }}"
+      Environment: UAT  
+  with_items: "{{UAT_natgw_id}}"
+
+- name: Create the NAT routing table for each of the UAT Private subnets 
+  ec2_vpc_route_table:
+    state: present
+    region: "{{ region }}"
+    vpc_id: "{{ thisvpc.vpc.id }}"
+    purge_routes: no
+    purge_subnets: no
+    purge_tags: no
+    subnets: 
+      "{{ item }}"
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ UAT_natgw_id }}"
+    tags:
+      Name: "UAT_nat_route_{{ thisvpc.vpc.id }}"
+      Customer: "{{customer }}"
+      Createdby: "{{createdby }}"
+      Environment: UAT  
+  with_items: "{{ private_UAT_subnet_ids }}"
+  register: private_UAT_route_table
+
+### Prod NAT RESOURCES ###
+
+- name: Gather info about public Prod  Subnets
+  ec2_vpc_subnet_info:
+    region: "{{ region }}"
+    filters:
+      vpc-id: "{{ thisvpc.vpc.id }}"
+      "tag:IsPublic": "*True*"
+      "tag:Environment": "*Prod*"
+  register: public_Prod_subnets
+
+- name: Store public Prod subnet ID's
+  set_fact:
+    public_Prod_subnet_ids: "{{ public_Prod_subnets | json_query ('subnets[*].subnet_id') }}"
+
+- name: Gather info about private Prod Subnets 
+  ec2_vpc_subnet_info:
+    region: "{{ region }}"
+    filters:
+      vpc-id: "{{ thisvpc.vpc.id }}"
+      "tag:IsPublic": "*False*"
+      "tag:Environment": "*Prod*"
+  register: private_Prod_subnets
+
+- name: Store private Prod subnet ID's
+  set_fact:
+    private_Prod_subnet_ids: "{{ private_Prod_subnets | json_query ('subnets[*].subnet_id') }}"
+
+- name: Gather info about Prod public  Subnets 
+  ec2_vpc_subnet_info:
+    region: "{{ region }}"
+    filters:
+      vpc-id: "{{ thisvpc.vpc.id }}"
+      "tag:IsPublic": "*True*"
+      "tag:Environment": "*Prod*"
+  register: public_Prod_subnets
+
+- name: Store private subnet ID's
+  set_fact:
+    public_Prod_subnet_ids: "{{ public_Prod_subnets | json_query ('subnets[*].subnet_id') }}"
+
+- name: Create Prod NAT Gateway
+  ec2_vpc_nat_gateway:
+    state: present
+    region: "{{ region }}"
+    subnet_id: "{{ item }}"
+    eip_address: "{{ eip | default (omit) }}"
+    if_exist_do_not_create: true
+    wait: "{{ natgw_wait | default ('yes') }} "
+    wait_timeout: "{{ natgw_wait_timeout | default (omit) }}"
+  with_items: "{{ public_Prod_subnet_ids[0] }}"
+  register: thisProdnatgw
+
+- name: Store Prod NAT GATEWAY ID
+  set_fact:
+    Prod_natgw_id: "{{ thisProdnatgw.results|json_query('[0].nat_gateway_id') }}"
+
+- name: Store Prod NAT GATEWAY creation time
+  set_fact:
+    Prod_natgw_create_time: "{{ thisProdnatgw.results|json_query('[0].create_time') }}"
+
+- name: Tag the Prod NAT Gateway(s)
+  ec2_tag:
+    region:  "{{ region }}"
+    resource: "{{ item }}"
+    tags:
+      Name: "Prod_natgw_{{ thisvpc.vpc.id  }}"
+      Customer: "{{customer }}"
+      Createdby: "{{createdby }}"
+      Date: "{{ Prod_natgw_create_time }}"
+      Environment: Prod  
+  with_items: "{{ Prod_natgw_id }}"
+
+
+- name: Create the NAT routing table for each of the Prod Private subnets 
+  ec2_vpc_route_table:
+    state: present
+    region: "{{ region }}"
+    vpc_id: "{{ thisvpc.vpc.id }}"
+    purge_routes: no
+    purge_subnets: no
+    purge_tags: no
+    subnets: 
+      "{{ item }}"
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ Prod_natgw_id }}"
+    tags:
+      Name: "Prod_nat_route_{{ thisvpc.vpc.id }}"
+      Customer: "{{customer }}"
+      Createdby: "{{createdby }}"
+      Environment: Prod  
+  with_items: "{{ private_Prod_subnet_ids }}"
+  register: private_Prod_route_table

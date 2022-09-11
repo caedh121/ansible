@@ -1,0 +1,13 @@
+- name: AWS Organizations
+  include_tasks:
+      account.yml 
+
+  include_tasks:
+      org_level_policies.yml
+
+  include_tasks:
+      org_level_services.yml
+
+#  include_tasks:
+#      tag_test.yml
+

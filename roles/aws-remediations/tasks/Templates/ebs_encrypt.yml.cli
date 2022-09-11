@@ -1,0 +1,32 @@
+- name: EBS Encryption status facts
+  command:
+    aws ec2 describe-volumes --region "{{region}}" --filters Name=encrypted,Values=false Name=tag:Environment,Values=*
+  register: ebs_cli
+
+#- debug:
+#    msg: "{{ebs_cli.stdout }}"  
+
+#- debug:
+#    msg: "{{ebs_cli.stdout.0.Attachment_set}}"
+
+
+- debug:
+    msg: "{{ item }}"
+  with_items: 
+    - "{{ ebs_cli.stdout | from_json | json_query( 'Volumes[*].VolumeId' ) }}"
+
+- debug:
+    msg: "{{ item }}"
+  with_items: 
+    - "{{ ebs_cli.stdout | from_json | json_query( 'Volumes[*].Attachments[*].InstanceId' ) }}"
+
+- debug:
+    msg: "{{ item.Attachments[0].InstanceId }}"
+  with_items: 
+    - "{{ ebs_cli.stdout | from_json | json_query( 'Volumes[*]' ) }}"
+
+
+#- debug:
+#    msg: "{{ebs_info.stdout | from_json | type_debug }}"  
+
+

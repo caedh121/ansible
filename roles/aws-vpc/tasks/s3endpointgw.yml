@@ -1,0 +1,15 @@
+- name: Describe route tables using AWS CLI, because ansible module crashes!!
+  command:
+    aws ec2 describe-route-tables --region "{{ region }}" --filters Name=vpc-id,Values="{{ thisvpc.vpc.id }}"
+  register: rtbs_info
+
+- name: Create vpc endpoint 
+  ec2_vpc_endpoint:
+    state: present
+    region: "{{ region }}"
+    vpc_id: "{{ thisvpc.vpc.id }}"
+    service: com.amazonaws.{{ region }}.s3
+    route_table_ids:
+      - "{{item}}"
+  with_items: "{{ rtbs_info.stdout | from_json | json_query( 'RouteTables[*].RouteTableId' ) }}"
+  register: new_vpc_endpoint

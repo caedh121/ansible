@@ -1,0 +1,11 @@
+- name : Creating customer vpn clientside gateways
+  ec2_customer_gateway:
+    region: "{{ region }}"
+    name: "{{ item.name }}"
+    ip_address: "{{ item.ip }}"
+    routing: "{{ item.routing }}"
+    bgp_asn: "{{ item.asn }}"
+  with_items: "{{ customer_gw }}"
+  register: thesecustomer_gw
+
+      

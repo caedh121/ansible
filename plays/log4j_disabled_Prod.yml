@@ -1,0 +1,24 @@
+### sudo ansible-playbook plays/log4j_disabled_Prod.yml --private-key ~/.ssh/ssh-key.pem -i log4j_disabled_Prod
+
+- name: Disable and stop log4j hotpatch in Production instances
+  hosts: no-log4j
+
+  tasks:
+    - name: disable log4j which is running when result is not Stopped
+      shell: >
+        systemctl status log4j-cve-2021-44228-hotpatch  | grep -q '(running)'  && sudo systemctl disable log4j-cve-2021-44228-hotpatch || echo 'Stopped'
+      register: dd1_cli
+      changed_when: dd1_cli.stdout != 'Stopped'
+
+    - debug:
+        msg: "{{dd1_cli.stdout}}"
+
+    - name: stop log4j 
+      shell: >
+        systemctl status log4j-cve-2021-44228-hotpatch  | grep -q '(running)'  && sudo systemctl stop log4j-cve-2021-44228-hotpatch || echo 'Stopped'
+      register: dd2_cli
+      changed_when: dd2_cli.stdout != 'Stopped'
+
+    - debug:
+        msg: "{{dd2_cli.stdout}}"
+

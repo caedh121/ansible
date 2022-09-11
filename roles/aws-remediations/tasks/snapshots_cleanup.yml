@@ -1,0 +1,8 @@
+---
+- name: execute install script
+  command: python3 "{{ role_path }}"/files/{{region}}-snp-cleanup.py
+  register: cleanup_output
+
+- name: "Cleanup Output"
+  debug:
+    msg:  "{{cleanup_output.stdout_lines}}"

@@ -1,0 +1,6 @@
+---
+- name: Create EC2 AMI
+  hosts: localhost
+
+  roles:
+   - role: internal/aws-ami

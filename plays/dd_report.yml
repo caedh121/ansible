@@ -1,0 +1,29 @@
+### sudo ansible-playbook plays/dd_report.yml --private-key ~/.ssh/ssh-key.pem -i dd_report_aws_ec2.yml > file.txt
+### more file.txt | grep changed: 
+ 
+- name: List of linux instances with datadog-agent installed regardless of service status running stopped  
+  hosts: _UAT
+
+  tasks:
+    - name: Datadog is installed when result equals changed
+      shell: >
+        systemctl status datadog-agent  | grep -q Loaded  && echo 'Present' || echo 'Absent' 
+      register: dd1_cli
+      changed_when: dd1_cli.stdout == 'Present'
+
+    - debug:
+        msg: "{{dd1_cli.stdout}}"
+
+    - name: Datadog is running when result equals changed
+      shell: >
+        systemctl status datadog-agent  | grep -q '(running)'  && echo 'Running' || echo 'Stopped' 
+      register: dd2_cli
+      changed_when: dd2_cli.stdout == 'Running'
+
+    - debug:
+        msg: "{{dd2_cli.stdout}}"
+#        msg: "{{dd2_cli | json_query(myquery) }}"
+#      vars:
+#        myquery: "[?stdout==`Running`]"
+
+

@@ -1,0 +1,57 @@
+- name: Describe EBS volumes using ansible module
+  ec2_vol_info:
+     region: "{{region}}"
+     filters:
+#       encrypted: false
+       attachment.status: attached
+  register: ebs_info
+
+- name: Tag the unencrypted volumes after their instance_id and device name
+  ec2_tag:
+    region: "{{region}}"
+    purge_tags: no
+    resource: "{{item.id}}"
+    state: present
+    tags:
+      InstanceId: "{{ item.attachment_set.0.instance_id }}"
+      Device: "{{ item.attachment_set.0.device }}"
+      SnapshotId: "{{ item.snapshot_id }}"
+      Zone: "{{ item.zone }}"
+      Encrypted: "{{ item.encrypted }}"
+  with_items: "{{ ebs_info.volumes }}"
+
+- name: Get instance status
+  ec2_instance_info:
+    region: "{{region}}"
+    filters:
+      instance-state-name: running
+  with_items: "{{ ebs_info.volumes }}"
+  register: instance_state
+
+
+- name: Stop instances with attached unencrypted volumes if state is running
+  ec2_instance:
+    region: "{{region}}"
+    state: stopped
+    wait: yes
+    wait_timeout: 36000
+    instance_ids: "{{ item.instances.0.instance_id }}"
+  with_items: "{{ instance_state.results }}"
+
+- name: Start instances that were running 
+  ec2_instance:
+    region: "{{region}}"
+    state: "{{item.instances.0.state.name}}"
+    wait: yes
+    wait_timeout: 36000
+    instance_ids: "{{ item.instances.0.instance_id }}"
+  with_items: "{{ instance_state.results }}"
+
+- debug:
+#    msg: "{{instance_state.results.0.instances.0.state.name}}"
+    msg: "{{instance_state.results.0.instances.0}}"
+
+- debug:
+    msg: "{{ item.instances.0.state.name }} -- {{ item.instances.0.instance_id }} "
+  with_items: "{{ instance_state.results }}"
+
