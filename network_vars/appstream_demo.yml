@@ -103,7 +103,7 @@ subnet:
 
 # VPC peerings info
 peerings:
-   - p_vpcid: "vpc-062ab84162d39a66c"
+   - p_vpcid: "vpc-5555555555"
      p_region: "eu-west-2"
      p_accid: "000000000"
      p_tags:

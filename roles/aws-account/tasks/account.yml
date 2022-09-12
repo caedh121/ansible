@@ -1,9 +1,25 @@
 - name: Create the account if doesn't exists
   shell: >
-    aws organizations list-accounts-for-parent --parent-id r-4zsj | grep -q "{{customer}}" && echo 'TAKEN' || aws organizations create-account --email "{{customer}}"@global --account-name "{{account_name}}" --tags Key=Customer,Value="{{account_name}}" --role-name AWSAdmins-AR 
+    aws organizations list-accounts-for-parent --parent-id r-4zsj | grep -q "{{customer}}" && echo 'TAKEN' || aws organizations create-account --email "{{customer}}"@genesis.global --account-name "{{account_name}}" --tags Key=Customer,Value="{{account_name}}" --role-name AWSAdmins-AR 
   register: acc_cli
   changed_when: acc_cli.stdout != 'TAKEN'
 
 - debug:
     msg: "{{acc_cli.stdout}}"
 
+- name: Check for ACTIVE account status
+  shell: >
+    aws organizations list-accounts-for-parent --parent-id r-4zsj --query 'Accounts[?Name==`"{{account_name}}"`]' | grep -q 'ACTIVE'  && echo "ACTIVE" && sleep 10s || echo 'CREATING' && sleep 60s
+  register: this_request
+  changed_when: this_request.stdout != 'ACTIVE'
+
+- debug:
+    msg: "{{this_request}}"
+
+- name: Store the list object
+  set_fact:
+    this_tmp: "{{this_request.stdout}}"
+
+- name: Store this Account ID
+  set_fact:
+    this_acc_id: "{{this_tmp.0}}"

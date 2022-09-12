@@ -1,13 +1,26 @@
-- name: AWS Organizations
+- name: Create Account
   include_tasks:
-      account.yml 
+       account.yml 
 
+- name: Apply Org Level Policies
   include_tasks:
-      org_level_policies.yml
+       org_level_policies.yml
 
+- name: Configure GuardDuty
   include_tasks:
-      org_level_services.yml
+       guardduty.yml
+
+- name: Configure Config
+  include_tasks:
+       config_service.yml
+  
+- name: Configure Security Hub
+  include_tasks:
+       security_hub.yml
+
+#- name: AWS Organizations
+#  include_tasks:
+#      acc_info.yml
 
 #  include_tasks:
 #      tag_test.yml
-

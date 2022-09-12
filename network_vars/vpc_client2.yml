@@ -1,0 +1,130 @@
+---
+# vars file for roles/internal/genesis.aws-vpc
+# Use *_status variable to define if we are creating the object(present) or not(absent)
+# customer value must match file name part following the underscore ex: vpc_clientname.yml => customer: "clientname"
+# account_name must match with AWS Organizations Console  
+account_name: "CLIENT2"
+customer: "client2" 
+region: "us-east-1" 
+regionname: "useast1" 
+vpc_cidr: 10.253.0.0/16
+
+# VPC Tags
+createdby: "Adrian"
+
+# Network resources to be created - boolean var $create is NOT case sensitive
+resources:
+   - r_name: vpc.yml
+     create: true
+   - r_name: subnets.yml
+     create: true
+   - r_name: inetgw.yml
+     create: true
+   - r_name: natgw.yml
+     create: true
+   - r_name: s3endpointgw.yml
+     create: true
+   - r_name: peerings.yml
+     create: true
+   - r_name: sg.yml
+     create: true
+#   - r_name: vgw.yml
+#     create: true
+#   - r_name: customergw.yml
+#     create: false
+#   - r_name: vpns2s.yml
+#     create: False
+#   - r_name: test.yml
+#     create: False
+
+# Create vpc subnets, check and match "availabilty zones" in the region 
+# rehuse the code, all subnets declared below will be created, respect spacing.
+subnet:
+   - subnet_name: "{{regionname}}-{{customer}}u-dmzsubA"
+     subnet_cidr: 10.253.0.0/24
+     subnet_az: us-east-1a
+     ispublic: True
+     state: present
+     env: UAT
+   - subnet_name: "{{regionname}}-{{customer}}u-dmzsubB"
+     subnet_cidr: 10.253.1.0/24
+     subnet_az: us-east-1b
+     ispublic: True
+     state: present
+     env: UAT
+   - subnet_name: "{{regionname}}-{{customer}}u-appsubA"
+     subnet_cidr: 10.253.2.0/24
+     subnet_az: us-east-1a
+     ispublic: False
+     state: present
+     env: UAT
+   - subnet_name: "{{regionname}}-{{customer}}u-appsubB"
+     subnet_cidr: 10.253.3.0/24
+     subnet_az: us-east-1b
+     ispublic: False
+     state: present
+     env: UAT
+   - subnet_name: "{{regionname}}-{{customer}}u-appsubC"
+     subnet_cidr: 10.253.4.0/24
+     subnet_az: us-east-1c
+     ispublic: False
+     state: present
+     env: UAT
+   - subnet_name: "{{regionname}}-{{customer}}p-dmzsubA"
+     subnet_cidr: 10.253.5.0/24
+     subnet_az: us-east-1a
+     ispublic: True
+     state: present
+     env: Prod
+   - subnet_name: "{{regionname}}-{{customer}}p-dmzsubB"
+     subnet_cidr: 10.253.6.0/24
+     subnet_az: us-east-1b
+     ispublic: True
+     state: present
+     env: Prod
+   - subnet_name: "{{regionname}}-{{customer}}p-appsubA"
+     subnet_cidr: 10.253.7.0/24
+     subnet_az: us-east-1a
+     ispublic: False
+     state: present
+     env: Prod
+   - subnet_name: "{{regionname}}-{{customer}}p-appsubB"
+     subnet_cidr: 10.253.8.0/24
+     subnet_az: us-east-1b
+     ispublic: False
+     state: present
+     env: Prod
+   - subnet_name: "{{regionname}}-{{customer}}p-appsubC"
+     subnet_cidr: 10.253.9.0/24
+     subnet_az: us-east-1c
+     ispublic: False
+     state: present
+     env: Prod
+
+# VPC peerings info
+peerings:
+   - p_vpcid: "vpc-333333333333333"
+     p_cidr: 
+     p_region: "eu-west-2"
+     p_accid: "0000000000"
+     p_tags:
+        Name: "{{regionname}}-{{customer}}p-peeradmin"
+   - p_vpcid: "vpc-22222222222222"
+     p_cidr: 
+     p_region: "eu-west-2"
+     p_accid: "9999999999999"
+     p_tags:
+        Name: "{{regionname}}-{{customer}}p-peeradminvpn"
+
+# ClientSide VPN GWYs
+#customer_gw:
+#   - name: "ckjnkj"
+#     ip: 1.2.3.4
+#     asn: 56789
+#     routing: "dynamic"
+#   - name: "vpnclients2"
+#     ip: 7.8.9.3
+#     asn: 56780
+#     routing: "dynamic"
+
+

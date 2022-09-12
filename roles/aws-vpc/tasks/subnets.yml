@@ -7,7 +7,7 @@
     az: "{{ item.subnet_az }}"
     map_public: "{{ item.ispublic | default ('False') }}"
     resource_tags:
-      Name: "{{customer}}_{{ item.subnet_az }}_subnet"
+      Name: "{{item.Name}}"
       Customer: "{{customer}}"
       Environment: "{{item.env}}"
       VPCname: "{{ thisvpc.vpc.tags.Name }}"
