@@ -1,0 +1,35 @@
+- block:
+    - name: Check if datadog is installed
+      shell: >
+        systemctl status datadog-agent  | grep -q Loaded  && echo 'Present' || echo 'Absent'
+      register: dd_cli
+      changed_when: dd_cli.stdout != 'Absent'
+
+    - meta: end_host
+      when: dd_cli.stdout == 'Absent'
+
+    - block:
+        - name: Check for BTF error in system-probe log 
+          shell: >
+            tail --lines=50 /var/log/datadog/agent.log | grep -q "Unable to get disk metrics for /sys/kernel/debug/tracing" && echo 'DISK_ERROR' || echo 'OK' 
+          register: dsk_cli
+          changed_when: dsk_cli.stdout == 'DISK_ERROR'
+
+        - meta: end_host
+          when: dsk_cli.stdout != 'DISK_ERROR'
+
+        - block:
+            - name: Copy disk monitoring file
+              copy:
+                src: disk.yaml.default
+                dest: /etc/datadog-agent/conf.d/disk.d/conf.yaml.default
+                force: yes
+                owner: dd-agent
+                group: dd-agent
+                mode: u=rw,g=r,o=r     
+            
+            - name:
+              shell: >
+                systemctl restart datadog-agent
+
+
