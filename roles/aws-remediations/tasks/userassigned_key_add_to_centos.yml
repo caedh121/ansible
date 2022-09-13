@@ -1,0 +1,7 @@
+- name: Add ben.wong public key to centos
+  lineinfile:
+            path: /home/centos/.ssh/authorized_keys
+            state: present
+            insertafter: EOF
+            backup: yes
+            line: "ssh-rsa kkkkjhdkjhfkdjhfkfjhdkfjhdfkjh"
