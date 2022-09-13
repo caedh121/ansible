@@ -1,6 +1,6 @@
 ---
 - name: AWS Security and Infrastructure Remediations 
-  hosts: dev-adrian2
+  hosts: all
 
   roles:
    - role: internal/aws-remediations
