@@ -1,0 +1,69 @@
+- block:
+    - name: Check if datadog is installed
+      shell: >
+        systemctl status datadog-agent  | grep -q Loaded  && echo 'Present' || echo 'Absent'
+      register: dd_cli
+      changed_when: dd_cli.stdout != 'Absent'
+
+    - meta: end_host
+      when: dd_cli.stdout == 'Absent'
+
+    - block:
+        - name: Check for BTF error in system-probe log 
+          shell: >
+            tail --lines=50 /var/log/datadog/system-probe.log | grep -q "map create without BTF: permission denied" && echo 'BTF_ERROR' || echo 'OK' 
+          register: btf_cli
+          changed_when: btf_cli.stdout == 'BTF_ERROR'
+
+        - meta: end_host
+          when: btf_cli.stdout != 'BTF_ERROR'
+
+        - block:
+            - name: Copy policy file
+              copy:
+                src: system_probe_policy.te
+                dest: /etc/datadog-agent/selinux/system_probe_policy.te
+                force: yes
+                owner: dd-agent
+                group: dd-agent
+                mode: u=rw,g=r,o=r     
+            
+            - name:
+              shell: >
+                checkmodule -M -m -o /etc/datadog-agent/selinux/system_probe_policy.mod /etc/datadog-agent/selinux/system_probe_policy.te
+                
+            - name:
+              shell: >
+                mv /etc/datadog-agent/selinux/system_probe_policy.pp /etc/datadog-agent/selinux/system_probe_policy.pp.ori
+
+            - name:
+              shell: >
+                semodule_package -o /etc/datadog-agent/selinux/system_probe_policy.pp -m /etc/datadog-agent/selinux/system_probe_policy.mod
+
+            - name:
+              shell: >
+                semodule -v -i /etc/datadog-agent/selinux/system_probe_policy.pp
+
+            - name:
+              shell: >
+                semanage fcontext -a -t system_probe_t /opt/datadog-agent/embedded/bin/system-probe
+
+            - name:
+              shell: >
+                restorecon -v /opt/datadog-agent/embedded/bin/system-probe
+
+            - name:
+              shell: >
+                systemctl restart datadog-agent
+
+
+
+
+
+        
+
+
+        
+
+#- debug:
+#    msg: "{{dd_cli}}"
