@@ -104,13 +104,15 @@ subnet:
 # VPC peerings info
 peerings:
    - p_vpcid: "vpc-333333333333333"
-     p_cidr: 
+     p_name: "VPC name1"
+     p_cidr: xxx.yyy.zzz.ooo
      p_region: "eu-west-2"
      p_accid: "0000000000"
      p_tags:
         Name: "{{regionname}}-{{customer}}p-peeradmin"
    - p_vpcid: "vpc-22222222222222"
-     p_cidr: 
+     p_name: "VPC name2"
+     p_cidr: ppp.qqq.xxx.sss
      p_region: "eu-west-2"
      p_accid: "9999999999999"
      p_tags:
