@@ -1,10 +1,9 @@
-region: "eu-west-2"
+region: "region-where-the-subnet-was-created-on"
 base_ami: "ami-000000000000"
+provkey: "rsa_key"
 spot_instance_types: ["t3.large"]
 spot_price: 10      
 subnet_id: "subnet-6666666666666"
 security_group_id: "sg-5555555555555"
-ssh_username: "centos"
-ssh_private_key_file: "ssh_key.pem"
 ### Tags
-Deployable: "True"
+
