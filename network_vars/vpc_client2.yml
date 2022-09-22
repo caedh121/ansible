@@ -1,5 +1,5 @@
 ---
-# vars file for roles/internal/genesis.aws-vpc
+# vars file for roles/aws-vpc
 # Use *_status variable to define if we are creating the object(present) or not(absent)
 # customer value must match file name part following the underscore ex: vpc_clientname.yml => customer: "clientname"
 # account_name must match with AWS Organizations Console  

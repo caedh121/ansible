@@ -71,10 +71,10 @@
       - dest: 0.0.0.0/0
         gateway_id: "{{ thisnatgw.gateway_id }}"
  
-- name: Create Genesis Default Security Group
+- name: Create MyOrg Default Security Group
   ec2_group:
     name: default
-    description: Genesis default ports
+    description: MyOrg default ports
     vpc_id: "{{ thisvpc.vpc.id }}"
     region: "{{ region }}"
     rules:

@@ -1,7 +1,7 @@
 - name: Create Default Production Security Group
   ec2_group:
-    name: "{{regionname}}-{{customer}}p-genesisdefaultsg1"
-    description: Genesis default ports
+    name: "{{regionname}}-{{customer}}p-MyOrgdefaultsg1"
+    description: MyOrg default ports
     vpc_id: "{{ thisvpc.vpc.id }}"
     region: "{{ region }}"
     state: present
@@ -55,8 +55,8 @@
 
 - name: Create UAT Default Security Group
   ec2_group:
-    name: "{{regionname}}-{{customer}}u-genesisdefaultsg1"
-    description: Genesis default ports
+    name: "{{regionname}}-{{customer}}u-MyOrgdefaultsg1"
+    description: MyOrg default ports
     vpc_id: "{{ thisvpc.vpc.id }}"
     region: "{{ region }}"
     state: present

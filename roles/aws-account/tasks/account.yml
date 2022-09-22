@@ -1,6 +1,6 @@
 - name: Create the account if doesn't exists
   shell: >
-    aws organizations list-accounts-for-parent --parent-id r-4zsj | grep -q "{{customer}}" && echo 'TAKEN' || aws organizations create-account --email "{{customer}}"@genesis.global --account-name "{{account_name}}" --tags Key=Customer,Value="{{account_name}}" --role-name AWSAdmins-AR 
+    aws organizations list-accounts-for-parent --parent-id r-4zsj | grep -q "{{customer}}" && echo 'TAKEN' || aws organizations create-account --email "{{customer}}"@MyOrg.com --account-name "{{account_name}}" --tags Key=Customer,Value="{{account_name}}" --role-name AWSAdmins-AR
   register: acc_cli
   changed_when: acc_cli.stdout != 'TAKEN'
 
