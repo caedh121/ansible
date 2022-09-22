@@ -1,6 +1,6 @@
 - name: Create the account if doesn't exists
   shell: >
-    aws organizations list-accounts-for-parent --parent-id r-4zsj | grep -q "{{customer}}" && echo 'TAKEN' || aws organizations create-account --email "{{customer}}"@MyOrg.com --account-name "{{account_name}}" --tags Key=Customer,Value="{{account_name}}" --role-name AWSAdmins-AR
+    aws organizations list-accounts-for-parent --parent-id "{{root_acc_id}}" | grep -q "{{customer}}" && echo 'TAKEN' || aws organizations create-account --email "{{customer}}"@MyOrg.com --account-name "{{account_name}}" --tags Key=Customer,Value="{{account_name}}" --role-name AWSAdmins-AR
   register: acc_cli
   changed_when: acc_cli.stdout != 'TAKEN'
 
@@ -9,7 +9,7 @@
 
 - name: Check for ACTIVE account status
   shell: >
-    aws organizations list-accounts-for-parent --parent-id r-4zsj --query 'Accounts[?Name==`"{{account_name}}"`]' | grep -q 'ACTIVE'  && echo "ACTIVE" && sleep 10s || echo 'CREATING' && sleep 60s
+    aws organizations list-accounts-for-parent --parent-id "{{root_acc_id}}" --query 'Accounts[?Name==`"{{account_name}}"`]' | grep -q 'ACTIVE'  && echo "ACTIVE" && sleep 10s || echo 'CREATING' && sleep 60s
   register: this_request
   changed_when: this_request.stdout != 'ACTIVE'
 

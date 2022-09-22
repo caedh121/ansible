@@ -1,0 +1,5 @@
+- name: Enabling Security Hub Organizational Membership
+  shell: > 
+    aws securityhub create-members --account-details '[{"AccountId": "{{this_acc_id}}"}]' | grep -q UnprocessedAccounts && echo 'PREVIOUSLY ENABLED' || echo 'ENABLING'
+  register: this_sh
+  changed_when: this_sh.stdout == 'ENABLING'

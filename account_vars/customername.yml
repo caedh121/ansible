@@ -1,6 +1,10 @@
 ---
 # vars file for roles/aws-account
 # customer value must match file name part following the underscore ex: customername.yml => customer: "customername"
+root_acc_id: "r-xxxz"
+tag_policy_id: "p-abcdefg56hij"
+env_policy_id: "p-lksjjklfsjfk"
+scp_policy_id: "p-lklklklksl3"
 region: "us-east-2"
 account_name: "CUSTOMERNAME"
 customer: "root.customername" 

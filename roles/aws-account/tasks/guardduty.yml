@@ -1,0 +1,15 @@
+- shell: >
+      aws guardduty list-detectors --region "{{region}}"
+  register: detector_cli
+
+- set_fact:
+    detector_ids: "{{detector_cli.stdout}}"
+
+- debug:
+    msg: "{{detector_ids.DetectorIds.0}}"
+
+- name: Enable GuardDuty membership for this account
+  shell: >
+       aws guardduty list-members --detector-id "{{detector_ids.DetectorIds.0}}" --region "{{region}}" | grep -q "{{this_acc_id}}" && echo 'Attached' || aws guardduty create-members --detector-id "{{detector_ids.DetectorIds.0}}" --account-details AccountId="{{this_acc_id}}",Email="{{customer}}"@genesis.global --region "{{region}}"
+  register: gdmember_cli
+  changed_when: gdmember_cli.stdout != 'Attached'
