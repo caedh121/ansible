@@ -1,0 +1,7 @@
+{
+    "name": "default",
+    "s3BucketName": "organizational-multiregion-config",
+    "configSnapshotDeliveryProperties": {
+        "deliveryFrequency": "Twelve_Hours"
+    }
+}
