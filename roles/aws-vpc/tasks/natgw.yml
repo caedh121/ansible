@@ -6,19 +6,21 @@
       vpc-id: "{{ thisvpc.vpc.id }}"
       "tag:IsPublic": "*True*"
       "tag:Environment": "*UAT*"
+  environment: "{{acc_env}}"
   register: public_UAT_subnets
 
 - name: Store public UAT subnet ID's
   set_fact:
     public_UAT_subnet_ids: "{{ public_UAT_subnets | json_query ('subnets[*].subnet_id') }}"
 
-- name: Gather info about private UAT Subnets 
+- name: Gather info about private UAT Subnets
   ec2_vpc_subnet_info:
     region: "{{ region }}"
     filters:
       vpc-id: "{{ thisvpc.vpc.id }}"
       "tag:IsPublic": "*False*"
       "tag:Environment": "*UAT*"
+  environment: "{{acc_env}}"
   register: private_UAT_subnets
 
 - name: Store private UAT subnet ID's
@@ -35,6 +37,7 @@
     wait: "{{ natgw_wait | default ('yes') }} "
     wait_timeout: "{{ natgw_wait_timeout | default (omit) }}"
   with_items: "{{ public_UAT_subnet_ids[0] }}"
+  environment: "{{acc_env}}"
   register: thisUATnatgw
 
 - name: Store UAT NAT GATEWAY ID
@@ -50,14 +53,15 @@
     region:  "{{ region }}"
     resource: "{{ item }}"
     tags:
-      Name: "UAT_natgw_{{ thisvpc.vpc.id  }}"
+      Name: "{{regionname}}-{{customer}}u-natgw1"
       Customer: "{{customer }}"
       Createdby: "{{createdby }}"
       Date: "{{ UAT_natgw_create_time }}"
-      Environment: UAT  
+      Environment: UAT
   with_items: "{{UAT_natgw_id}}"
+  environment: "{{acc_env}}"
 
-- name: Create the NAT routing table for each of the UAT Private subnets 
+- name: Create the NAT routing table for each of the UAT Private subnets
   ec2_vpc_route_table:
     state: present
     region: "{{ region }}"
@@ -65,17 +69,18 @@
     purge_routes: no
     purge_subnets: no
     purge_tags: no
-    subnets: 
+    subnets:
       "{{ item }}"
     routes:
       - dest: 0.0.0.0/0
         gateway_id: "{{ UAT_natgw_id }}"
     tags:
-      Name: "UAT_nat_route_{{ thisvpc.vpc.id }}"
+      Name: "{{regionname}}-{{customer}}u-vpcroutetableapp1"
       Customer: "{{customer }}"
       Createdby: "{{createdby }}"
-      Environment: UAT  
+      Environment: UAT
   with_items: "{{ private_UAT_subnet_ids }}"
+  environment: "{{acc_env}}"
   register: private_UAT_route_table
 
 ### Prod NAT RESOURCES ###
@@ -87,32 +92,35 @@
       vpc-id: "{{ thisvpc.vpc.id }}"
       "tag:IsPublic": "*True*"
       "tag:Environment": "*Prod*"
+  environment: "{{acc_env}}"
   register: public_Prod_subnets
 
 - name: Store public Prod subnet ID's
   set_fact:
     public_Prod_subnet_ids: "{{ public_Prod_subnets | json_query ('subnets[*].subnet_id') }}"
 
-- name: Gather info about private Prod Subnets 
+- name: Gather info about private Prod Subnets
   ec2_vpc_subnet_info:
     region: "{{ region }}"
     filters:
       vpc-id: "{{ thisvpc.vpc.id }}"
       "tag:IsPublic": "*False*"
       "tag:Environment": "*Prod*"
+  environment: "{{acc_env}}"
   register: private_Prod_subnets
 
 - name: Store private Prod subnet ID's
   set_fact:
     private_Prod_subnet_ids: "{{ private_Prod_subnets | json_query ('subnets[*].subnet_id') }}"
 
-- name: Gather info about Prod public  Subnets 
+- name: Gather info about Prod public  Subnets
   ec2_vpc_subnet_info:
     region: "{{ region }}"
     filters:
       vpc-id: "{{ thisvpc.vpc.id }}"
       "tag:IsPublic": "*True*"
       "tag:Environment": "*Prod*"
+  environment: "{{acc_env}}"
   register: public_Prod_subnets
 
 - name: Store private subnet ID's
@@ -129,6 +137,7 @@
     wait: "{{ natgw_wait | default ('yes') }} "
     wait_timeout: "{{ natgw_wait_timeout | default (omit) }}"
   with_items: "{{ public_Prod_subnet_ids[0] }}"
+  environment: "{{acc_env}}"
   register: thisProdnatgw
 
 - name: Store Prod NAT GATEWAY ID
@@ -144,15 +153,16 @@
     region:  "{{ region }}"
     resource: "{{ item }}"
     tags:
-      Name: "Prod_natgw_{{ thisvpc.vpc.id  }}"
+      Name: "{{regionname}}-{{customer}}p-natgw1"
       Customer: "{{customer }}"
       Createdby: "{{createdby }}"
       Date: "{{ Prod_natgw_create_time }}"
-      Environment: Prod  
+      Environment: Prod
   with_items: "{{ Prod_natgw_id }}"
+  environment: "{{acc_env}}"
 
 
-- name: Create the NAT routing table for each of the Prod Private subnets 
+- name: Create the NAT routing table for each of the Prod Private subnets
   ec2_vpc_route_table:
     state: present
     region: "{{ region }}"
@@ -160,15 +170,16 @@
     purge_routes: no
     purge_subnets: no
     purge_tags: no
-    subnets: 
+    subnets:
       "{{ item }}"
     routes:
       - dest: 0.0.0.0/0
         gateway_id: "{{ Prod_natgw_id }}"
     tags:
-      Name: "Prod_nat_route_{{ thisvpc.vpc.id }}"
+      Name: "{{regionname}}-{{customer}}p-vpcroutetableapp1"
       Customer: "{{customer }}"
       Createdby: "{{createdby }}"
-      Environment: Prod  
+      Environment: Prod
   with_items: "{{ private_Prod_subnet_ids }}"
+  environment: "{{acc_env}}"
   register: private_Prod_route_table

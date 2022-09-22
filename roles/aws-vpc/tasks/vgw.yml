@@ -8,5 +8,5 @@
     tags:
       Customer: "{{customer }}"
       Createdby: "{{createdby }}"
+  environment: "{{acc_env}}"
   register: thisvgw
-

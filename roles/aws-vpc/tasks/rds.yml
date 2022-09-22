@@ -1,11 +1,12 @@
-- rds:
-    command: create
-    instance_name: new-database
-    db_engine: MySQL
-    size: 10
-    instance_type: db.m1.small
-    username: mysql_admin
-    password: 1nsecure
+- name: Create a vgw attached to this VPC
+  ec2_vpc_vgw:
+    state: present
+    region: "{{ region }}"
+    vpc_id: "{{ thisvpc.vpc.id }}"
+    name: "vpn_gwy_{{ thisvpc.vpc.id }}"
+    type: ipsec.1
     tags:
-      Environment: testing
-      Application: cms
+      Customer: "{{customer }}"
+      Createdby: "{{createdby }}"
+  environment: "{{acc_env}}"
+  register: thisvgw

@@ -2,7 +2,9 @@
 # vars file for roles/aws-vpc
 # Use *_status variable to define if we are creating the object(present) or not(absent)
 # customer value must match file name part following the underscore ex: vpc_clientname.yml => customer: "clientname"
-
+# account_name must match with AWS Organizations Console
+account_name: "CLIENTNAME"
+root_acc_id: "r-xxxz"
 customer: "clientname" 
 region: "us-east-2" 
 vpc_cidr: 10.10.0.0/24

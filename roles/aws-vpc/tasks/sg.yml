@@ -16,34 +16,24 @@
       - proto: tcp
         ports:
         - 443
-        cidr_ip: 172.20.0.0/16
-        rule_desc: https from london ras
+        cidr_ip: "{{peerings.0.p_cidr}}"
+        rule_desc: https
       - proto: tcp
         ports:
         - 22
-        cidr_ip: 172.20.0.0/16
-        rule_desc: ssh from london ras
-      - proto: tcp
-        ports:
-        - 22
-        cidr_ip: 172.21.1.0/24
-        rule_desc: ssh from sao paolo ras
+        cidr_ip: "{{peerings.0.p_cidr}}"
+        rule_desc: ssh
       - proto: tcp
         ports:
         - 9100
         - 9101
-        cidr_ip: 172.20.0.0/16
+        cidr_ip: "{{peerings.0.p_cidr}}"
         rule_desc: prometheus scrape
-      - proto: tcp
-        ports:
-        - 4567
-        cidr_ip: 172.20.0.0/16
-        rule_desc: Webmon from london ras
       - proto: icmp
         ports:
         - -1
-        cidr_ip: 172.20.0.0/16
-        rule_desc: ping from london ras
+        cidr_ip: "{{peerings.0.p_cidr}}"
+        rule_desc: ping
     rules_egress:
       - proto: all
         ports:
@@ -70,35 +60,25 @@
     rules:
       - proto: tcp
         ports:
-        - 443
-        cidr_ip: 172.20.0.0/16
-        rule_desc: https from london ras
+          - 443
+        cidr_ip: "{{peerings.0.p_cidr}}"
+        rule_desc: https
       - proto: tcp
         ports:
-        - 22
-        cidr_ip: 172.20.0.0/16
-        rule_desc: ssh from london ras
+          - 22
+        cidr_ip: "{{peerings.0.p_cidr}}"
+        rule_desc: ssh
       - proto: tcp
         ports:
-        - 22
-        cidr_ip: 172.21.1.0/24
-        rule_desc: ssh from sao paolo ras
-      - proto: tcp
-        ports:
-        - 9100
-        - 9101
-        cidr_ip: 172.20.0.0/16
+          - 9100
+          - 9101
+        cidr_ip: "{{peerings.0.p_cidr}}"
         rule_desc: prometheus scrape
-      - proto: tcp
-        ports:
-        - 4567
-        cidr_ip: 172.20.0.0/16
-        rule_desc: Webmon from london ras
       - proto: icmp
         ports:
-        - -1
-        cidr_ip: 172.20.0.0/16
-        rule_desc: ping from london ras
+          - -1
+        cidr_ip: "{{peerings.0.p_cidr}}"
+        rule_desc: ping
     rules_egress:
       - proto: all
         ports:
@@ -106,4 +86,4 @@
         cidr_ip: 0.0.0.0/0
         rule_desc: allow all outbound
   register: thissg
-  environment: UAT
+  environment: "{{acc_env}}"

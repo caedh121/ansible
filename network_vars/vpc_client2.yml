@@ -4,6 +4,7 @@
 # customer value must match file name part following the underscore ex: vpc_clientname.yml => customer: "clientname"
 # account_name must match with AWS Organizations Console  
 account_name: "CLIENT2"
+root_acc_id: "r-xxxz"
 customer: "client2" 
 region: "us-east-1" 
 regionname: "useast1" 

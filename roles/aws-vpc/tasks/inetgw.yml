@@ -1,9 +1,10 @@
 - name: Gather info about public Subnets
   ec2_vpc_subnet_info:
-    region: "{{ region }}" 
+    region: "{{ region }}"
     filters:
       vpc-id: "{{ thisvpc.vpc.id }}"
       "tag:IsPublic": "*True*"
+  environment: "{{acc_env}}"
   register: public_subnets
 
 - name: Store public subnet ID's
@@ -16,10 +17,11 @@
    region: "{{ region }}"
    state: present
    tags:
-     Name: "Inetgw_{{thisvpc.vpc.tags.Name}}"
+     Name: "{{regionname}}-{{customer}}p-igw1"
      VPCname: "{{ thisvpc.vpc.tags.Name }}"
      Customer: "{{customer }}"
      Createdby: "{{createdby }}"
+  environment: "{{acc_env}}"
   register: thisigw
 
 - name: Route IGW
@@ -30,16 +32,17 @@
     purge_routes: no
     purge_subnets: no
     purge_tags: no
-    subnets: 
+    subnets:
        '{{ item }}'
     routes:
       - dest: 0.0.0.0/0
         gateway_id: "{{ thisigw.gateway_id }}"
     tags:
-      Name: "inet_route_{{ thisvpc.vpc.id }}"
+      Name: "{{regionname}}-{{customer}}-vpcroutetabledmz1"
       GTWname: "{{ thisigw.tags.Name }}"
       Customer: "{{ customer }}"
       Createdby: "{{ createdby }}"
   with_items:
       "{{ public_subnet_ids }}"
+  environment: "{{acc_env}}"
   register: public_route_table

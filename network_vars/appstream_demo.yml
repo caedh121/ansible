@@ -3,7 +3,9 @@
 # ansible-playbook plays/aws-vpc.yml -i localhost -e @"network_vars/appstream_demo.yml"
 # Use *_status variable to define if we are creating the object(present) or not(absent)
 # customer value must match file name part following the underscore ex: vpc_clientname.yml => customer: "clientname"
-
+# account_name must match with AWS Organizations Console
+account_name: "APPSTREAM-DEMO"
+root_acc_id: "r-xxxz"
 customer: "appstream_demo" 
 region: "us-east-2" 
 vpc_cidr: 

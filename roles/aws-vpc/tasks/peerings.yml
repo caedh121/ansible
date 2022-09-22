@@ -10,21 +10,46 @@
   with_items: "{{peerings}}"
   loop_control:
      loop_var: call_peering
+  environment: "{{acc_env}}"
 
-- name: Describe peerings using ansible module
+- name: Describe peerings in pending-acceptance status
+  ec2_vpc_peering_info:
+    region: "{{ region }}"
+    filters:
+      requester-vpc-info.vpc-id: "{{ thisvpc.vpc.id }}"
+      status-code: ['pending-acceptance']
+  environment: "{{acc_env}}"
+  register: this_ps
+
+- set_fact:
+    this_ps_result: "{{this_ps.result}}"
+
+- name: Accept peering connections in this Management Account
+  ec2_vpc_peer:
+    region: "{{ item.accepter_vpc_info.region }}"
+    peering_id: "{{ item.vpc_peering_connection_id }}"
+    state: accept
+  with_items: "{{this_ps_result}}"
+
+- name: Lets wait 2 minutes for the peering connections to transition from pending-acceptance to provisioning to active status
+  pause: seconds=120
+
+- name: Describe peering connections in active status
   ec2_vpc_peering_info:
     region: "{{ region }}"
     filters:
       requester-vpc-info.vpc-id: "{{ thisvpc.vpc.id }}"
       status-code: ['active']
+  environment: "{{acc_env}}"
   register: peerings_info
 
-- name: Describe route tables using AWS CLI, because ansible module crashes!!
+- name: Describe route tables in this VPC
   command:
     aws ec2 describe-route-tables --region "{{ region }}" --filters Name=vpc-id,Values="{{ thisvpc.vpc.id }}"
+  environment: "{{acc_env}}"
   register: rtbs_cli
 
-- name: Update routing tables
+- name: Update routing tables in this account VPC, accepter vpcs routes must be updated manually
   ec2_vpc_route_table:
     state: present
     region: "{{ region }}"
@@ -40,4 +65,4 @@
   with_nested:
      - "{{ rtbs_cli.stdout | from_json | json_query( 'RouteTables[*].RouteTableId' ) }}"
      - "{{ peerings_info.result }}"
-  
+  environment: "{{acc_env}}"

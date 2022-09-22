@@ -6,6 +6,7 @@
     routing: "{{ item.routing }}"
     bgp_asn: "{{ item.asn }}"
   with_items: "{{ customer_gw }}"
-  register: thesecustomer_gw
+  environment: "{{acc_env}}"
+  register: thiscustomer_gws
 
       

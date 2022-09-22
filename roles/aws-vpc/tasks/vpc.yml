@@ -1,9 +1,42 @@
 ---
+---
 # tasks file for roles/aws-vpc
+
+- name: Get the account info
+  command:
+    aws organizations list-accounts-for-parent --parent-id "{{root_acc_id}}" --query 'Accounts[?Name==`"{{account_name}}"`].Id'
+  register: this_request
+
+- name: Store the list object
+  set_fact:
+    this_tmp: "{{this_request.stdout}}"
+
+- name: Store this Account ID
+  set_fact:
+    this_acc_id: "{{this_tmp.0}}"
+
+- sts_assume_role:
+    role_arn: "arn:aws:iam::{{this_acc_id}}:role/AWSAdmins-AR"
+    role_session_name: "{{account_name}}"
+  register: assumed_role
+
+- name: Set Env Vars
+  set_fact:
+    acc_env:
+      AWS_ACCESS_KEY_ID: "{{ assumed_role.sts_creds.access_key }}"
+      AWS_SECRET_ACCESS_KEY: "{{ assumed_role.sts_creds.secret_key }}"
+      AWS_SESSION_TOKEN: "{{ assumed_role.sts_creds.session_token }}"
+      AWS_DEFAULT_REGION: "{{region}}"
+      AWS_DEFAULT_OUTPUT: "json"
+      aws_access_key_id: "{{ assumed_role.sts_creds.access_key }}"
+      aws_secret_access_key: "{{ assumed_role.sts_creds.secret_key }}"
+      security_token: "{{ assumed_role.sts_creds.session_token }}"
+      region: "{{region}}"
+      output: "json"
 
 - name: create VPC
   ec2_vpc_net:
-    name: "{{customer}}_vpc"
+    name: "{{regionname}}-{{customer}}p-vpc1"
     region: "{{ region }}"
     cidr_block: "{{ vpc_cidr }}"
     state: present
@@ -14,6 +47,7 @@
     tags:
      Customer: "{{customer}}"
      Createdby: "{{createdby}}"
+  environment: "{{acc_env}}"
   register: thisvpc
   when: (vpc_cidr is defined) and (region is defined) and (customer is defined)
 
