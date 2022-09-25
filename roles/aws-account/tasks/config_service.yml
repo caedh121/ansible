@@ -43,7 +43,7 @@
 
 - name: Config step 2 of 3 Put Delivery Channel S3
   shell: >
-    aws configservice put-delivery-channel --delivery-channel file:///etc/ansible/roles/internal/genesis.aws-account/files/deliveryChannel.json
+    aws configservice put-delivery-channel --delivery-channel file:///etc/ansible/roles/aws-account/files/deliveryChannel.json
   environment: "{{acc_env}}"
 
 - name: Config step 3 of 3 Start Config Service
