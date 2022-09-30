@@ -3,4 +3,4 @@
   hosts: localhost
 
   roles:
-   - role: internal/aws-ami
+   - role: aws-ami
