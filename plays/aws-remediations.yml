@@ -1,6 +1,6 @@
 ---
 - name: AWS Security and Infrastructure Remediations 
-  hosts: all
+  hosts: localhost
 
   roles:
    - role: aws-remediations

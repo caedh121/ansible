@@ -1,0 +1,39 @@
+#- name: Describe EBS volumes using ansible module
+#  ec2_vol_info:
+#     region: "{{region}}"
+#     filters:
+#       volume-type: gp2
+# register: ebs_info
+
+- name: Check for gp2 volumes less than 1GB
+  shell: >
+      aws ec2 describe-volumes --filters "Name=volume-type,Values=gp2" "Name=tag:Environment,Values=UAT" --query 'Volumes[?Size < `1001`].[VolumeId]' --region "{{region}}"
+  register: ebs_info
+
+- debug:
+    msg: "{{ebs_info.stdout | type_debug}}"
+
+- set_fact:
+    ebs_info: "{{ebs_info.stdout | from_json}}"
+
+- name: Upgrade to gp3
+  shell: >
+     aws ec2 modify-volume --volume-type gp3 --volume-id "{{item}}" --region "{{region}}"
+  with_items: "{{ebs_info}}"
+  register: result
+
+#- debug:
+#    msg: "{{result.results.stdout_lines }}"
+
+#- debug:
+#    msg: "{{item}}"
+#  with_items: "{{ebs_info.stdout}}"
+
+#- debug:
+#    msg: "{{item.id}}-{{item.size}}"
+#  with_items: "{{ebs_info.volumes}}"
+#  when: "{{item.size}}" =< 1000
+
+#    msg: "{{ebs_info | json_query 'Volumes[?Size < `1000`].[VolumeId,VolumeType,Size]'}}"
+
+# aws ec2 describe-volumes --filters Name=volume-type,Values=gp2 --query 'Volumes[?Size < `1000`].[VolumeId,VolumeType,Size]' 
