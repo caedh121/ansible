@@ -10,9 +10,9 @@
     resource: "{{ item | json_query ('block_device_mappings[0].ebs.volume_id') }}"
     state: present
     tags:
-      Name: "{{ item.tags.Name  }}"
-      Customer: "{{ item.tags.Customer }}"
-      Environment: "{{ item.tags.Environment }}"
+      Name: "{{ item.tags.Name | default([])   }}"
+      Customer: "{{ item.tags.Customer | default([])  }}"
+      Environment: "{{ item.tags.Environment | default([])  }}"
       Taggedby: Ansible
   with_items: "{{ ec2_list | json_query ('instances[*]') | default([]) }}"
   ignore_errors: yes
@@ -24,9 +24,9 @@
     resource: "{{ item | json_query ('block_device_mappings[1].ebs.volume_id') }}"
     state: present
     tags:
-      Name: "{{ item.tags.Name  }}"
-      Customer: "{{ item.tags.Customer }}"
-      Environment: "{{ item.tags.Environment }}"
+      Name: "{{ item.tags.Name | default([])  }}"
+      Customer: "{{ item.tags.Customer | default([]) }}"
+      Environment: "{{ item.tags.Environment | default([]) }}"
       Taggedby: Ansible
   with_items: "{{ ec2_list | json_query ('instances[*]') | default([]) }}"
   ignore_errors: yes
@@ -38,9 +38,9 @@
     resource: "{{ item | json_query ('block_device_mappings[2].ebs.volume_id') }}"
     state: present
     tags:
-      Name: "{{ item.tags.Name  }}"
-      Customer: "{{ item.tags.Customer }}"
-      Environment: "{{ item.tags.Environment }}"
+      Name: "{{ item.tags.Name | default([])  }}"
+      Customer: "{{ item.tags.Customer | default([]) }}"
+      Environment: "{{ item.tags.Environment | default([]) }}"
       Taggedby: Ansible
   with_items: "{{ ec2_list | json_query ('instances[*]') | default([]) }}"
   ignore_errors: yes
@@ -52,9 +52,9 @@
     resource: "{{ item | json_query ('block_device_mappings[3].ebs.volume_id') }}"
     state: present
     tags:
-      Name: "{{ item.tags.Name  }}"
-      Customer: "{{ item.tags.Customer }}"
-      Environment: "{{ item.tags.Environment }}"
+      Name: "{{ item.tags.Name | default([]) }}"
+      Customer: "{{ item.tags.Customer | default([])}}"
+      Environment: "{{ item.tags.Environment | default([])}}"
       Taggedby: Ansible
   with_items: "{{ ec2_list | json_query ('instances[*]') | default([]) }}"
   ignore_errors: yes
@@ -66,9 +66,9 @@
     resource: "{{ item | json_query ('block_device_mappings[4].ebs.volume_id') }}"
     state: present
     tags:
-      Name: "{{ item.tags.Name  }}"
-      Customer: "{{ item.tags.Customer }}"
-      Environment: "{{ item.tags.Environment }}"
+      Name: "{{ item.tags.Name  | default([])}}"
+      Customer: "{{ item.tags.Customer | default([])}}"
+      Environment: "{{ item.tags.Environment | default([])}}"
       Taggedby: Ansible
   with_items: "{{ ec2_list | json_query ('instances[*]') | default([]) }}"
   ignore_errors: yes
@@ -80,9 +80,9 @@
     resource: "{{ item | json_query ('block_device_mappings[5].ebs.volume_id') }}"
     state: present
     tags:
-      Name: "{{ item.tags.Name  }}"
-      Customer: "{{ item.tags.Customer }}"
-      Environment: "{{ item.tags.Environment }}"
+      Name: "{{ item.tags.Name  | default([])}}"
+      Customer: "{{ item.tags.Customer | default([])}}"
+      Environment: "{{ item.tags.Environment | default([])}}"
       Taggedby: Ansible
   with_items: "{{ ec2_list | json_query ('instances[*]') | default([]) }}"
   ignore_errors: yes
@@ -94,9 +94,9 @@
     resource: "{{ item | json_query ('block_device_mappings[6].ebs.volume_id') }}"
     state: present
     tags:
-      Name: "{{ item.tags.Name  }}"
-      Customer: "{{ item.tags.Customer }}"
-      Environment: "{{ item.tags.Environment }}"
+      Name: "{{ item.tags.Name  | default([])}}"
+      Customer: "{{ item.tags.Customer | default([])}}"
+      Environment: "{{ item.tags.Environment | default([])}}"
       Taggedby: Ansible
   with_items: "{{ ec2_list | json_query ('instances[*]') | default([]) }}"
   ignore_errors: yes
