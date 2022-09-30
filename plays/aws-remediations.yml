@@ -3,6 +3,6 @@
   hosts: all
 
   roles:
-   - role: internal/aws-remediations
+   - role: aws-remediations
 
 
