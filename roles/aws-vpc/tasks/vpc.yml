@@ -32,6 +32,19 @@
       region: "{{region}}"
       output: "json"
 
+- name: In use CIDR check 
+  shell: >    
+    aws ec2 describe-vpcs --filters Name=cidr,Values="{{ vpc_cidr }}" --query 'Vpcs[*].CidrBlock' --region "{{ region}}" | grep -q "{{vpc_cidr}}" && echo "In_use" || echo "Available"
+  register: cidr_check
+
+- debug:
+    msg: "ALERT!!! VPC CIDR {{vpc_cidr}} IS ALREADY IN USE IN REGION {{region}}"
+  when: cidr_check.stdout == "In_use" 
+
+#- meta: end_play
+#  when: cidr_check.stdout == "In_use"
+
+
 - name: create VPC
   ec2_vpc_net:
     name: "{{regionname}}-{{customer}}p-vpc1"
