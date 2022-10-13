@@ -42,6 +42,7 @@
         rule_desc: allow all outbound
   register: thissg
   environment: "{{acc_env}}"
+  when: peerings.0.p_cidr is defined
 
 - name: Create UAT Default Security Group
   ec2_group:
@@ -87,3 +88,5 @@
         rule_desc: allow all outbound
   register: thissg
   environment: "{{acc_env}}"
+  when: peerings.0.p_cidr is defined
+

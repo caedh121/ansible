@@ -1,5 +1,3 @@
----
----
 # tasks file for roles/aws-vpc
 
 - name: Get the account info
@@ -17,7 +15,7 @@
 
 - sts_assume_role:
     role_arn: "arn:aws:iam::{{this_acc_id}}:role/AWSAdmins-AR"
-    role_session_name: "{{account_name}}"
+    role_session_name: "{{customer}}"
   register: assumed_role
 
 - name: Set Env Vars
