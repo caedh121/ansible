@@ -34,17 +34,25 @@
 
 - name: In use CIDR check 
   shell: >    
-    aws ec2 describe-vpcs --filters Name=cidr,Values="{{ vpc_cidr }}" --query 'Vpcs[*].CidrBlock' --region "{{ region}}" | grep -q "{{vpc_cidr}}" && echo "In_use" || echo "Available"
+      aws ec2 describe-vpcs --filters Name=cidr,Values="{{ vpc_cidr }}" --query 'Vpcs[*].CidrBlock' --region "{{ region}}" | grep -q "{{vpc_cidr}}" && echo "In_use" || echo "Available"
   register: cidr_check
+  changed_when: cidr_check.stdout == "Available"
 
-- debug:
-    msg: "ALERT!!! VPC CIDR {{vpc_cidr}} IS ALREADY IN USE IN REGION {{region}}"
-  when: cidr_check.stdout == "In_use" 
+- block:
+        - name: User input required to continue
+          pause:
+            prompt: "CIDR {{vpc_cidr}} is already in use on region {{region}}. Are you sure you want use this CIDR? (yes/no)"
+          register: confirm_cidr
+          when: cidr_check.stdout == "In_use"
 
-#- meta: end_play
-#  when: cidr_check.stdout == "In_use"
-
-
+        - name: End play if CIDR is not confirmed
+          meta: end_play
+          when:
+             - (confirm_cidr.user_input == "N") or (confirm_cidr.user_input == "n") or (confirm_cidr.user_input == "No") or (confirm_cidr.user_input == "NO") or (confirm_cidr.user_input == "no")
+             - cidr_check.stdout == "In_use"
+      
+  when: cidr_check.stdout == "In_use"
+ 
 - name: create VPC
   ec2_vpc_net:
     name: "{{regionname}}-{{customer}}p-vpc1"
