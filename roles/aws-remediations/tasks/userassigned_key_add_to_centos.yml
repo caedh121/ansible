@@ -1,4 +1,4 @@
-- name: Add ben.wong public key to centos
+- name: Add user public key to centos
   lineinfile:
             path: /home/centos/.ssh/authorized_keys
             state: present
